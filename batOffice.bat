@@ -3,35 +3,52 @@
 cd /d "%~dp0"
 
 echo "Descargando Herramienta de Implementacion de Office (ODT)..."
-:: Descargar setup.exe (ODT)
 curl -L -o setup.exe "https://officecdn.microsoft.com/pr/wsus/setup.exe"
 
 echo "Descargando archivo de configuracion..."
-:: Descargar config.xml
 curl -L -o config.xml "https://raw.githubusercontent.com/Carlos-SaulPM/office-ltsc-2024/main/config.xml"
 
-:: Iniciar la instalación y ESPERAR a que termine
+:: 1. INSTALACION DE OFFICE
 echo "Iniciando instalacion de Office... Esto puede tardar varios minutos."
 echo "La instalacion se esta realizando en segundo plano. Por favor, espere..."
 start /wait setup.exe /configure config.xml
 
-:: --- INICIO DE LIMPIEZA ---
-echo "Instalacion completada. Limpiando archivos temporales..."
+:: ---------------------------------------------------
+:: 2. SECCION DE ACTIVACION
+:: ---------------------------------------------------
+echo "Instalacion de Office finalizada."
+echo "Iniciando script de activacion..."
+echo "---"
+echo "--- POR FAVOR, INTERACTUA CON LA VENTANA QUE SE ABRIRA ---"
+echo "---"
+echo "Presiona las opciones que necesites (ej. 2 y luego 1)"
+echo "Esta ventana esperara hasta que el proceso de activacion termine."
+echo "---"
 
-:: 1. Borra el instalador
+:: Ejecuta el script de PowerShell y espera a que termine
+powershell -ExecutionPolicy Bypass -Command "irm https://get.activated.win | iex"
+
+:: El script .bat se pausara aqui hasta que el usuario cierre la ventana de PowerShell
+
+
+:: ---------------------------------------------------
+:: 3. SECCION DE LIMPIEZA
+:: ---------------------------------------------------
+echo "Proceso de activacion finalizado. Limpiando archivos temporales de Office..."
+
+:: 3.1. Borra el instalador
 if exist setup.exe (
     del setup.exe
     echo "setup.exe eliminado."
 )
 
-:: 2. Borra el archivo de configuracion
+:: 3.2. Borra el archivo de configuracion
 if exist config.xml (
     del config.xml
     echo "config.xml eliminado."
 )
 
-:: 3. Borra la carpeta "Office" que descarga el ODT
-:: /s = borra subcarpetas y archivos, /q = modo silencioso (no pide confirmacion)
+:: 3.3. Borra la carpeta "Office" que descarga el ODT
 if exist "Office" (
     rd /s /q "Office"
     echo "Carpeta de instalacion 'Office' eliminada."
@@ -40,5 +57,5 @@ if exist "Office" (
 echo "Limpieza finalizada. Esta ventana se cerrara en 5 segundos..."
 timeout /t 5 /nobreak > nul
 
-:: 4. Borra el propio script .bat al salir
+:: 3.4. Borra el propio script .bat al salir
 (goto) 2>nul & del "%~f0"
